@@ -111,7 +111,15 @@ Additionally, no special optimizations are done to the variable to avoid abnorma
 In effect, the `volatile` keyword is signaling to the JVM that a variable will be used by more than one thread.  
 
 The authors do not recommend relying on volatile variables too much as that can lead to deep reasoning for concurrency guarantees.  
-A typical use-case for volatile variables are simple status flags.
+A typical use-case for volatile variables are simple status flags like below:.
+```java
+volatile boolean asleep;
+
+while(!asleep)
+{
+ countSomeSheep();
+}
+```
 
 > Locking can guarantee both visibility and atomicity; volatile variables can only guarantee visibility.
 
@@ -121,7 +129,7 @@ To use a volatile variable, all these conditions need to be met:
  * Locking is not required for any other reason while the variable is being accessed
 
 # Publication & Escape
-Publishing an object means making it available for read & write outside of its current scope. In many situations, we don't want to publish an object and its internals.  
+Publishing an object means making it available for read & write outside of its current scope (storing a ref where other code can find it, returning it from non private method or passing it to a method in other class). In many situations, we don't want to publish an object and its internals.  
 If it happens without our consent, it is said that the object has escaped.  
 
 In other times, we do want to publish an object, but that should be done in a thread-safe manner.  
@@ -138,7 +146,7 @@ public void initialize() {
 
 Publishing an object also publishes any object the former refers to via a nonprivate access field/method.
 
-Returning a reference to a private field from a non-private method publishes that object:
+Returning a reference to a private field from a non-private method publishes that object.:
 ```java
 class UnsafeStates {
     private String[] states = new String[] {
@@ -148,6 +156,7 @@ class UnsafeStates {
     public String[] getStates() { return states; }
 } 
 ```
+Any object that is reachable from a published object by following some chain of nonprivate field references and method calls has also been published. Use `encapsulation` to analyze programs for correctness.
 
 Finally, an object can escape by publishing an inner class reference, which has access to its parent `this` reference:
 ```java
@@ -203,6 +212,8 @@ GUI applications (e.g. Swing framework) use this extensively via event loops.
 
 Events in a GUI application execute on a single thread & objects from the framework need to be used from the event loop thread.  
 If some object needs to be accessed outside of that thread, Swing has a mechanism (`invokeLater`) to prevent thread-safety violations.  
+
+Another example of thread confinement is the use of pooled JDBC `Connection` objects
 
 Thread confinement is a mechanism defined by your application's design. The java language doesn't guarantee confinement in any way (just as it doesn't guarantee locking).
 
