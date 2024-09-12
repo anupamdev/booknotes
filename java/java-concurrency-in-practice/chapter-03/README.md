@@ -364,6 +364,22 @@ public class Holder {
 In the example above, `n` might appear to be `null` to a caller thread, although it has been assigned a value via the constructor.  
 What's more it could appear to be null the first time it's read and not null the second time, which might lead to the bizarre assertion.  
 
+Solution:
+Fixing the Publication:
+You need to ensure that the Holder object is safely published. Some ways to do this include:
+Declaring holder as volatile:
+```java
+public volatile Holder holder;
+```
+This ensures visibility of changes to holder across threads.
+
+Using proper synchronization, such as synchronizing access to the holder field.
+Declaring holder as final, if it's not meant to be reassigned after initialization.
+```java
+public final Holder holder = new Holder(42);
+```
+Without these mechanisms, the code is prone to visibility issues and improper publication in a multithreaded environment.
+
 ## Immutable objects and initialization safety
 As we've seen, synchronization is needed when constructing mutable objects.  
 However, the Java memory model has special guarantees for immutable objects.  
